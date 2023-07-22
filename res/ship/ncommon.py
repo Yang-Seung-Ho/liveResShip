@@ -13,6 +13,7 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.alert import Alert
 import common
+import vcommon
 
 # 전역 변수로 드라이버와 대기 객체 선언
 nateDriver = None
@@ -56,11 +57,81 @@ def y_nateLogin(NateID, NatePD) :
 
 
 
+# 네이트 메일 내용 정리
+def y_nateEmailMsg():
+
+    # 배조아 사이트에서 필요한 정보 가져오기
+    isRoundTrip, is_same, NK_name, NK_PhoneNumber, NK_From, NK_RoomName, NK_Date, NK_Time, NK_CustomerList, FromListCopyInfo, ToListCopyInfo, NK_Car = vcommon.y_data("녹동")
+
+
+    # 메일 제목 내용
+    EmailSubject = f'{NK_name} 님 예약요청건 입니다(헬로우/제주지사)'
+
+    # 예약요청 메시지 생성
+    EmailMsg = f'''
+[예약요청]
+1. 성함 : {NK_name}
+
+2. 연락처 : {NK_PhoneNumber}
+
+'''
+        
+    # 편도일 때
+    if not isRoundTrip:  
+            EmailMsg += f'''
+3. 스케줄&등급
+{str(NK_From[0])} {str(NK_RoomName[0])} {str(NK_Date[0])} {str(NK_Time[0])}
+
+        '''
+        
+
+    # 왕복일 때
+    elif isRoundTrip:  
+            EmailMsg += f'''
+3. 스케줄&등급
+{str(NK_From[0])} {str(NK_RoomName[0])} {str(NK_Date[0])} {str(NK_Time[0])}
+{str(NK_From[1])} {str(NK_RoomName[1])} {str(NK_Date[1])} {str(NK_Time[1])}
+
+        '''
+
+
+    # 왕복이고 명단 동일하지 않을 때
+    if isRoundTrip and not is_same:  
+            EmailMsg += f'''
+4. 명단
+{NK_CustomerList[0]}
+{FromListCopyInfo}
+{NK_CustomerList[1]}
+{ToListCopyInfo}
+
+        '''
+            
+    # 왕복이고 동일 명단 일 때
+    elif isRoundTrip and is_same:  
+            EmailMsg += f'''
+4. 명단
+{FromListCopyInfo}
+
+        '''
+        
+    EmailMsg += f'''
+5. 차량
+{NK_Car}
+
+{'왕복예약' if isRoundTrip else '편도예약'} 부탁드립니다
+감사합니다.
+        '''
+
+    return EmailSubject, EmailMsg
+
+
+
+
 
 
 # 네이트 메일 보내기 접속, 메일 전송
-def y_nateEmailSend(OpponentEmail1, OpponentEmail2,isRoundTrip, is_same, NK_name, NK_PhoneNumber, NK_From, NK_RoomName, NK_Date, NK_Time, NK_CustomerList, FromListCopyInfo, ToListCopyInfo, NK_Car):
-    
+def y_nateEmailSend(SendEmail1, SendEmail2):
+    EmailSubject, EmailMsg = y_nateEmailMsg()
     try :
         # 메일 보내기 접속
         nateDriver.get("https://mail3.nate.com/#write/?act=new")
@@ -69,17 +140,17 @@ def y_nateEmailSend(OpponentEmail1, OpponentEmail2,isRoundTrip, is_same, NK_name
         EmailAddressBox = wait_nate.until(EC.presence_of_element_located(
             (By.ID, "textArea__to")))
         EmailAddressBox.clear()  # 기존 값 삭제
-        EmailAddressBox.send_keys(OpponentEmail1)
+        EmailAddressBox.send_keys(SendEmail1)
         EmailAddressBox.send_keys(Keys.ENTER)
         time.sleep(1)
-        EmailAddressBox.send_keys(OpponentEmail2)
+        EmailAddressBox.send_keys(SendEmail2)
         EmailAddressBox.send_keys(Keys.ENTER)
 
 
         # 제목 입력
         MailSubjectBox = wait_nate.until(EC.presence_of_element_located(
             (By.ID, "mail_subject")))
-        MailSubjectBox.send_keys(f'{NK_name} 님 예약요청건 입니다(헬로우/제주지사)')
+        MailSubjectBox.send_keys(EmailSubject)
 
 
         # iframe 전환
@@ -93,68 +164,11 @@ def y_nateEmailSend(OpponentEmail1, OpponentEmail2,isRoundTrip, is_same, NK_name
         InfoBox.send_keys(Keys.CONTROL, 'a')  # 텍스트 전체 선택
 
 
-        # 예약요청 메시지 생성
-        message = f'''
-[예약요청]
-1. 성함 : {NK_name}
-
-2. 연락처 : {NK_PhoneNumber}
-
-'''
-        
-        # 편도일 때
-        if not isRoundTrip:  
-            message += f'''
-3. 스케줄&등급
-{str(NK_From[0])} {str(NK_RoomName[0])} {str(NK_Date[0])} {str(NK_Time[0])}
-
-        '''
-        
-
-        # 왕복일 때
-        elif isRoundTrip:  
-            message += f'''
-3. 스케줄&등급
-{str(NK_From[0])} {str(NK_RoomName[0])} {str(NK_Date[0])} {str(NK_Time[0])}
-{str(NK_From[1])} {str(NK_RoomName[1])} {str(NK_Date[1])} {str(NK_Time[1])}
-
-        '''
-
-
-        # 왕복이고 명단 동일하지 않을 때
-        if isRoundTrip and not is_same:  
-            message += f'''
-4. 명단
-{NK_CustomerList[0]}
-{FromListCopyInfo}
-{NK_CustomerList[1]}
-{ToListCopyInfo}
-
-        '''
-            
-        # 왕복이고 동일 명단 일 때
-        elif isRoundTrip and is_same:  
-            message += f'''
-4. 명단
-{FromListCopyInfo}
-
-        '''
-        
-        message += f'''
-5. 차량
-{NK_Car}
-
-{'왕복예약' if isRoundTrip else '편도예약'} 부탁드립니다
-감사합니다.
-        '''
-
-
         # 예약 메시지 입력 후 iframe 기본 전환
-        InfoBox.send_keys(message)
+        InfoBox.send_keys(EmailMsg)
         time.sleep(1)
         nateDriver.switch_to.default_content()
         EmailAddressBox.click()
-
         
         
         # 메일 검토

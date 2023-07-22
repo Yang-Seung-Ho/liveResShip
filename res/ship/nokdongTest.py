@@ -12,8 +12,8 @@ NateID = 'ysh5979'
 NatePD = 'hj748159'
 
 # 네이트 보낼 이메일 주소 2개 
-OpponentEmail1 = 'tmdgh5979@naver.com'
-OpponentEmail2 = 'ysh5979@nate.com'
+SendEmail1 = 'tmdgh5979@naver.com'
+SendEmail2 = 'ysh5979@nate.com'
 
 # 사이트 접속
 try:
@@ -37,13 +37,8 @@ while True:
         # 새로 고침 하며 주문 내역 선택 후 새로운 탭으로 접속 (10초 단위)
         vcommon.y_refreshFind(10)
 
-
-        # 배조아 데이터 가져오기(녹동)
-        isRoundTrip, is_same, NK_name, NK_PhoneNumber, NK_From, NK_RoomName, NK_Date, NK_Time, NK_CustomerList, FromListCopyInfo, ToListCopyInfo, NK_Car = vcommon.y_data("녹동")
-
-
         # 네이트 이메일 전송
-        ncommon.y_nateEmailSend(OpponentEmail1, OpponentEmail2,isRoundTrip, is_same, NK_name, NK_PhoneNumber, NK_From, NK_RoomName, NK_Date, NK_Time, NK_CustomerList, FromListCopyInfo, ToListCopyInfo, NK_Car)
+        ncommon.y_nateEmailSend(SendEmail1, SendEmail2)
 
 
         # 배조아 호출 사항 수정 및 입력 후 저장
