@@ -19,104 +19,77 @@ vejoaDriver = None
 wait = None
 
 
-#배조아 사이트 로그인 후 주문내역으로 이동 ,VejoaLogo 및 AdminLogo 를 파이오토로 이미지 찾기로 수정하기
-def y_vejoaLogin2(vejoaID,vejoaPD):
-    
-    # 전역 변수로 선언
-    global vejoaDriver, wait
-
-    
-    while True :
-        # 최대 10초까지 기다립니다.
-        wait = WebDriverWait(vejoaDriver, 10)  
-
-        # 배조아 사이트 접속
-        vejoaDriver = webdriver.Chrome()
-        vejoaDriver.maximize_window()
-        vejoaDriver.get("http://www.vejoa.com/admin")
-
-        # 사이트 접속 되었는지 확인
-        try:
-            VejoaLogo = wait.until(EC.presence_of_element_located(
-            (By.XPATH, "/html/body/div[3]/div[1]/header/div/ul/li[1]/a")))
-            time.sleep(3)
-        except TimeoutException:
-            vejoaDriver.close()
-            time.sleep(3)
-            continue
-        
-        # 로그인 될 시 무한 루프 탈출
-
-        while True :
-            
-            # 로그인 되어 있는지 확인 후 주문내역 접속
-            try :
-                AdminLogo = wait.until(EC.presence_of_element_located(
-                (By.XPATH, "/html/body/div[3]/div[1]/div/div[1]/span/a")))
-                time.sleep(3)
-                break
-            except TimeoutException: # 로그인 안되었을 시
-                
-                # 아이디 비밀번호 입력 후 로그인
-                InputId = wait.until(EC.presence_of_element_located(
-                    (By.XPATH, "/html/body/div[3]/div[2]/div/div/div/div3/div[2]/form/div[1]/div/input")))
-                InputPd = wait.until(EC.presence_of_element_located(
-                    (By.XPATH, "/html/body/div[3]/div[2]/div/div/div/div/div[2]/form/div[2]/div/input")))
-                InputId.send_keys(vejoaID)
-                InputPd.send_keys(vejoaPD)
-
-                # 로그인 버튼 클릭
-                LoginBtn = wait.until(EC.presence_of_element_located(
-                    (By.XPATH, "/html/body/div[3]/div[2]/div/div/div/div/div[2]/form/div[3]/div[1]/button")))
-                LoginBtn.click()
-
-                # 로그인 재 확인
-                try:
-                    AdminLogo = wait.until(EC.presence_of_element_located(
-                (By.XPATH, "/html/body/div[3]/div[1]/div/div[1]/span/a")))
-                    break
-                except:
-                    continue
-        break
-    vejoaDriver.get("http://www.vejoa.com/admin/cmall/cmallorder")
-    time.sleep(1)
+# 전역 변수로 드라이버와 대기 객체 선언 (20230810)
+vejoaDriver = None
+wait = None
 
 #배조아 사이트 로그인 후 주문내역으로 이동
 def y_vejoaLogin(vejoaID,vejoaPD):
     
-    # 전역 변수로 선언
+    # 배조아 가상드라이버, 최대기다림 시간 전역변수로 설정
     global vejoaDriver, wait
 
-    
-    # 배조아 사이트 접속
-    vejoaDriver = webdriver.Chrome()
-    vejoaDriver.maximize_window()
-    vejoaDriver.get("https://www.vejoa.com/admin")
-    
-    
-    # 최대 10초까지 기다립니다.
-    wait = WebDriverWait(vejoaDriver, 10)  
-    
 
-    # 아이디 비밀번호 입력 후 로그인
-    InputId = wait.until(EC.presence_of_element_located(
-        (By.XPATH, "/html/body/div[3]/div[2]/div/div/div/div/div[2]/form/div[1]/div/input")))
-    InputPd = wait.until(EC.presence_of_element_located(
-        (By.XPATH, "/html/body/div[3]/div[2]/div/div/div/div/div[2]/form/div[2]/div/input")))
-    InputId.send_keys(vejoaID)
-    InputPd.send_keys(vejoaPD)
-
-    
-    #로그인 버튼 클릭
-    LoginBtn = wait.until(EC.presence_of_element_located(
-        (By.XPATH, "/html/body/div[3]/div[2]/div/div/div/div/div[2]/form/div[3]/div[1]/button")))
-    LoginBtn.click()
+    # 사이트 접속 및 로그인 성공 시 까지 무한 루프
+    while True :
 
 
-    # 주문내역 접속 (admin로그인이 되면 확인 주소값으로 확인 후 주문내역 주소로 이동)
-    current_url = vejoaDriver.current_url
-    if current_url == "https://www.vejoa.com/admin":
+        # 배조아 사이트 접속
+        vejoaDriver = webdriver.Chrome()
+
+
+        # 가상 드라이버 최대화
+        vejoaDriver.maximize_window()
+
+
+        # 배조아 사이트 접속
+        vejoaDriver.get("https://www.vejoa.com/admin")
+        
+
+        # 최대 기다림 시간 지정   
+        wait = WebDriverWait(vejoaDriver, 10)  
+        
+
+        # 사이트 접속 여부 확인 후 접속 시 로그인 정보 입력
+        try :         
+            # 아이디 비밀번호 입력 후 로그인
+            InputId = wait.until(EC.presence_of_element_located(
+                (By.XPATH, "/html/body/div[3]/div[2]/div/div/div/div/div[2]/form/div[1]/div/input")))
+            InputPd = wait.until(EC.presence_of_element_located(
+                (By.XPATH, "/html/body/div[3]/div[2]/div/div/div/div/div[2]/form/div[2]/div/input")))
+
+            
+            # 아이디 비밀번호 입력
+            InputId.send_keys(vejoaID)
+            InputPd.send_keys(vejoaPD)
+
+        
+            #로그인 버튼 클릭
+            LoginBtn = wait.until(EC.presence_of_element_located(
+                (By.XPATH, "/html/body/div[3]/div[2]/div/div/div/div/div[2]/form/div[3]/div[1]/button")))
+            LoginBtn.click()
+
+
+            #로그인 완료 시 반복 문 종료
+            break
+
+
+        # 사이트 접속 및 로그인 오류 시 
+        except :
+            
+            
+            # 가상 드라이버 닫기 후 재시도
+            vejoaDriver.close()
+            continue
+
+    
+    # 로그인 완료 여부 확인 
+    AdminLogo = wait.until(EC.presence_of_element_located(
+    (By.XPATH, "/html/body/div[3]/div[1]/div/div[1]/span/a")))
+    if AdminLogo :
+         # 주문내역 접속
         vejoaDriver.get("https://www.vejoa.com/admin/cmall/cmallorder")
+        
     time.sleep(1)
     
 
